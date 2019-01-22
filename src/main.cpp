@@ -1,6 +1,8 @@
 #include "main.h"
 #include "timer.h"
 #include "ball.h"
+#include "platform.h"
+#include "coin.h"
 
 using namespace std;
 
@@ -12,7 +14,18 @@ GLFWwindow *window;
 * Customizable functions *
 **************************/
 
+int points;
+int stop;
+float max_height,max_width;
+
+int coin_status[5];
+Coin c[5];
+Platform p;
+Wall w ;
+Ball enemy1 ;
+Ball player;
 Ball ball1;
+Ball ball2;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -30,7 +43,9 @@ void draw() {
     glUseProgram (programID);
 
     // Eye - Location of camera. Don't change unless you are sure!!
-    glm::vec3 eye ( 5*cos(camera_rotation_angle*M_PI/180.0f), 0, 5*sin(camera_rotation_angle*M_PI/180.0f) );
+   
+    //glm::vec3 eye ( 5*cos(camera_rotation_angle*M_PI/180.0f), 0, 5*sin(camera_rotation_angle*M_PI/180.0f) );
+    glm::vec3 eye ( 0,0,5 );
     // Target - Where is the camera looking at.  Don't change unless you are sure!!
     glm::vec3 target (0, 0, 0);
     // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
@@ -51,20 +66,86 @@ void draw() {
     glm::mat4 MVP;  // MVP = Projection * View * Model
 
     // Scene render
-    ball1.draw(VP);
+    for(int i=0;i<5;i++)
+        if(coin_status[i] != -1)
+            c[i].draw(VP);
+    p.draw(VP);
+    w.draw(VP);
+    //enemy1.draw(VP);
+    //ball1.draw(VP);
+    //ball2.draw(VP);
+    player.draw(VP);
+    
 }
 
 void tick_input(GLFWwindow *window) {
     int left  = glfwGetKey(window, GLFW_KEY_LEFT);
     int right = glfwGetKey(window, GLFW_KEY_RIGHT);
+    int up = glfwGetKey(window, GLFW_KEY_UP);
+    int down = glfwGetKey(window, GLFW_KEY_DOWN);
+    int zoomin = glfwGetKey(window, GLFW_KEY_Z);
+    int zoomout = glfwGetKey(window, GLFW_KEY_X);
+
+
+
     if (left) {
-        // Do something
+        //cout<<"left";
+    for(int i=0;i<5;i++)
+        if(coin_status[i] != -1)
+            c[i].position.x += 1; // move the back ground
+
     }
+    else if (right) {
+    for(int i=0;i<5;i++)
+        if(coin_status[i] != -1)
+            c[i].position.x -= 1; // move the back ground 
+    }
+    else if (up){
+        if(player.position.y != 4.0f) // to stagnate at the max height
+            player.position.y += 0.1;
+    }
+    else if(zoomin){
+        screen_zoom += 0.1;
+        reset_screen();
+        //cout<<"zoom";
+    }
+    else if(zoomout){
+        screen_zoom -= 0.1;
+        reset_screen();
+        //cout<<"out";
+    }
+
+    while(player.position.y >0)
+        player.position.y -= 0.1;
+
 }
 
 void tick_elements() {
-    ball1.tick();
-    camera_rotation_angle += 1;
+    //cout<<"tick";
+
+    player.tick(0);
+    bounding_box_t p;
+    p.x = player.position.x;
+    p.y = player.position.y;
+    p.width = 1.0f;
+    p.height = 1.0f;
+
+    for(int i=0;i<5;i++)
+        if(coin_status[i] != -1)
+        {
+            bounding_box_t b;
+            b.x = c[i].position.x;
+            b.y = c[i].position.y;
+            b.width = 0.2f;
+            b.height = 0.2f; 
+            if (detect_collision(b,p))
+            {
+                points += 10; // getting the coins 
+                cout<<"POINTS : "<<points<<"\n";
+                coin_status[i] = -1;
+            }       
+        }
+
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -73,7 +154,16 @@ void initGL(GLFWwindow *window, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
 
-    ball1       = Ball(0, 0, COLOR_RED);
+    ball1       = Ball(1, 1, COLOR_RED,0.5f);
+    ball2       = Ball(3, 3, COLOR_GREEN,1.0f);
+    player = Ball(0, 0, COLOR_RED,0.25f);
+    enemy1 = Ball(1, 2, COLOR_BLACK,0.5f);
+    p = Platform(1);
+    w = Wall(1);
+    for(int i=0;i<5;i++)
+        if(coin_status[i] == -1)
+            c[i] = Coin(1);
+        
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("Sample_GL.vert", "Sample_GL.frag");
@@ -98,6 +188,11 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 
 int main(int argc, char **argv) {
+    for(int i =0;i<5;i++)
+        coin_status[i] = -1;
+    points = 0;
+    max_height = max_width = 4.0f;
+    stop = 1;
     srand(time(0));
     int width  = 600;
     int height = 600;
@@ -105,7 +200,6 @@ int main(int argc, char **argv) {
     window = initGLFW(width, height);
 
     initGL (window, width, height);
-
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
         // Process timers
