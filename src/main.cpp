@@ -20,13 +20,16 @@ GLFWwindow *window;
 int points;
 int stop;
 float max_height,max_width;
+float distance_covered ;
 
 int coin_status[5];
+int stat ;
 Coin c[5];
 Platform p;
 Streak s;
 //Polygon example;
 Wall w ;
+Boomerang bm;
 Beam b;
 Ball enemy1 ;
 Ball player;
@@ -87,6 +90,9 @@ void draw() {
             }
     b.draw(VP);
     s.draw(VP);
+    if(bm.current <= 115)
+        bm.draw(VP);
+
     //example.draw(VP);
 }
 
@@ -99,20 +105,27 @@ void tick_input(GLFWwindow *window) {
     int zoomout = glfwGetKey(window, GLFW_KEY_X);
 
 
-
     if (left) {
+        distance_covered -= 0.1f;
+        bm.tick();
+        stat =0;
+        bm.position.x += 0.1f;
         //cout<<"left";
     for(int i=0;i<5;i++)
         if(coin_status[i] != -1)
             c[i].position.x += 0.1; // move the back ground
     }
     else if (right) {
+        bm.tick();
+        stat =0;
+        distance_covered += 0.1f;
+        bm.position.x -= 0.1f;
     for(int i=0;i<5;i++)
         if(coin_status[i] != -1)
         {
             c[i].position.x -= 0.1; // move the back ground
-            /*if(c[i].position.x <= 5.0f) 
-                coin_status[i] = -1;*/
+            if(c[i].position.x <= -5.0f) 
+                coin_status[i] = -1;
         }
     }
     else if (up){
@@ -143,6 +156,16 @@ void tick_elements() {
 
     player.tick(0);
     b.tick();
+
+    if(stat > 100)
+        {
+            cout<<"yep alive";
+            bm.tick();
+            stat =0;
+        }
+    else
+        stat++;
+
     struct Point p_line[4],s_line[2];
 
     p_line[0] = {player.position.x+0.5f,player.position.y+0.5f};
@@ -208,6 +231,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     w = Wall(1);
     b = Beam(1);
     s = Streak(1);
+    bm = Boomerang(1);
     //example = Polygon(0,0,COLOR_BRIGHT_GREEN,0.5f,5);
     for(int i=0;i<5;i++)
         if(coin_status[i] == -1)
@@ -242,9 +266,11 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 
 int main(int argc, char **argv) {
+    stat =0;
     for(int i =0;i<5;i++)
         coin_status[i] = -1;
     points = 0;
+    distance_covered = 0;
     max_height = max_width = 4.0f;
     stop = 1;
     srand(time(0));
@@ -254,11 +280,13 @@ int main(int argc, char **argv) {
     window = initGLFW(width, height);
 
     initGL (window, width, height);
+    
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
         // Process timers
 
         if (t60.processTick()) {
+        
         for(int i=0;i<5;i++)
             if(coin_status[i] == -1)
             {

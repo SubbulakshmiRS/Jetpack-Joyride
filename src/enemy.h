@@ -11,9 +11,12 @@ public:
     Boomerang() {}
     Boomerang(int scene);
     glm::vec3 position;
+    int current;
     float rotation;
     void draw(glm::mat4 VP);
     void set_position(float x, float y);
+    float points[120][2];
+    void tick();
 private:
     VAO *object;
 };

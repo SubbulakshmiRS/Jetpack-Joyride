@@ -3,7 +3,8 @@
 
 
 Boomerang::Boomerang(int scene) {
-    float x = -4.0f,y = ((rand()%100)/100) + 1.5f; //check the rand
+    this->current =0;
+    float x = 4.0f,y = 3.0f; //check the rand
     this->position = glm::vec3(x, y, 0);
     this->rotation = 0;
 
@@ -18,7 +19,38 @@ Boomerang::Boomerang(int scene) {
         0.25,0.05,0,
     };
 
-    this->object = create3DObject(GL_TRIANGLES, 2*3, vertex_buffer_data, COLOR_GREEN, GL_FILL);
+    this->object = create3DObject(GL_TRIANGLES, 2*3, vertex_buffer_data, COLOR_DEAD_BLACK, GL_FILL);
+    int i=0;
+    while(x>-2.0f)
+    {
+        this->points[i][0]=x;
+        this->points[i][1]=y;
+        x-=0.15f; //40 steps
+        i++;
+    }
+    while(x> -4.0f)
+    {
+        this->points[i][0]=x;
+        points[i][1]=y;
+        x -= 0.15f;
+        y -= 0.2f;
+        i++; //10 steps
+    }
+    while(x< -2.0f)
+    {
+        this->points[i][0]=x;
+        points[i][1]=y;
+        x += 0.15f;
+        y -= 0.2f;
+        i++;
+    }
+    while(x<4.0f)
+    {
+        this->points[i][0]=x;
+        points[i][1]=y;
+        x +=0.15f; //60 steps
+        i++;
+    }   
 
 }
 
@@ -38,6 +70,15 @@ void Boomerang::set_position(float x, float y) {
     this->position = glm::vec3(x, y, 0);
 }
 
+void Boomerang::tick() {
+    this->current++;
+    if (this->current >100)
+        return ;
+    float x= this->points[this->current][0];
+    float y= this->points[this->current][1];
+    this->position = glm::vec3(x, y, 0);
+    
+}
 
 Beam::Beam(int scene) {
     this->time =-1;
