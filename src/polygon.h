@@ -1,13 +1,13 @@
 #include "main.h"
 
-#ifndef BALL_H
-#define BALL_H
+#ifndef POLYGON_H
+#define POLYGON_H
 
 
-class Ball {
+class Polygon {
 public:
-    Ball() {}
-    Ball(float x, float y, color_t color,float size,float rotation);
+    Polygon() {}
+    Polygon(float x, float y, color_t color,float size,int n);
     glm::vec3 position;
     float rotation;
     float size;
@@ -20,4 +20,4 @@ private:
     VAO *object;
 };
 
-#endif // BALL_H
+#endif // POLYGON_H

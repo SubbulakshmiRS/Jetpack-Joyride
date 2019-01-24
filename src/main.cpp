@@ -3,6 +3,8 @@
 #include "ball.h"
 #include "platform.h"
 #include "coin.h"
+#include "enemy.h"
+#include "polygon.h"
 
 using namespace std;
 
@@ -21,7 +23,9 @@ float max_height,max_width;
 int coin_status[5];
 Coin c[5];
 Platform p;
+//Polygon example;
 Wall w ;
+Beam b;
 Ball enemy1 ;
 Ball player;
 Ball ball1;
@@ -66,16 +70,21 @@ void draw() {
     glm::mat4 MVP;  // MVP = Projection * View * Model
 
     // Scene render
-    for(int i=0;i<5;i++)
-        if(coin_status[i] != -1)
-            c[i].draw(VP);
+
     p.draw(VP);
     w.draw(VP);
     //enemy1.draw(VP);
     //ball1.draw(VP);
     //ball2.draw(VP);
     player.draw(VP);
-    
+    for(int i=0;i<5;i++)
+        if(coin_status[i] != -1)
+            {
+                //cout<<"hurray\n";
+                c[i].draw(VP);
+            }
+    b.draw(VP);
+    //example.draw(VP);
 }
 
 void tick_input(GLFWwindow *window) {
@@ -92,13 +101,16 @@ void tick_input(GLFWwindow *window) {
         //cout<<"left";
     for(int i=0;i<5;i++)
         if(coin_status[i] != -1)
-            c[i].position.x += 1; // move the back ground
-
+            c[i].position.x += 0.1; // move the back ground
     }
     else if (right) {
     for(int i=0;i<5;i++)
         if(coin_status[i] != -1)
-            c[i].position.x -= 1; // move the back ground 
+        {
+            c[i].position.x -= 0.1; // move the back ground
+            /*if(c[i].position.x <= 5.0f) 
+                coin_status[i] = -1;*/
+        }
     }
     else if (up){
         if(player.position.y != 4.0f) // to stagnate at the max height
@@ -114,9 +126,12 @@ void tick_input(GLFWwindow *window) {
         reset_screen();
         //cout<<"out";
     }
+    else 
+    {
+        while(player.position.y >0)
+            player.position.y -= 0.1;
+    }
 
-    while(player.position.y >0)
-        player.position.y -= 0.1;
 
 }
 
@@ -124,6 +139,7 @@ void tick_elements() {
     //cout<<"tick";
 
     player.tick(0);
+    b.tick();
     bounding_box_t p;
     p.x = player.position.x;
     p.y = player.position.y;
@@ -146,6 +162,15 @@ void tick_elements() {
             }       
         }
 
+
+    bounding_box_t light;
+    light.x=b.position.x;
+    light.y=b.position.y;
+    light.width = 8.0f;
+    light.height = 0.1f;
+    if(detect_collision(p,light))
+        cout<<"HIT\n";
+
 }
 
 /* Initialize the OpenGL rendering properties */
@@ -154,15 +179,22 @@ void initGL(GLFWwindow *window, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
 
-    ball1       = Ball(1, 1, COLOR_RED,0.5f);
-    ball2       = Ball(3, 3, COLOR_GREEN,1.0f);
-    player = Ball(0, 0, COLOR_RED,0.25f);
-    enemy1 = Ball(1, 2, COLOR_BLACK,0.5f);
+    ball1       = Ball(1, 1, COLOR_RED,0.5f,0);
+    ball2       = Ball(3, 3, COLOR_GREEN,1.0f,0);
+    player = Ball(0, 0, COLOR_RED,0.25f,0);
+    enemy1 = Ball(1, 2, COLOR_BLACK,0.5f,0);
     p = Platform(1);
     w = Wall(1);
+    b = Beam(1);
+    //example = Polygon(0,0,COLOR_BRIGHT_GREEN,0.5f,5);
     for(int i=0;i<5;i++)
         if(coin_status[i] == -1)
+        {
+            //cout<<"sd\n";
             c[i] = Coin(1);
+            coin_status[i] = 1;
+        }
+        
         
 
     // Create and compile our GLSL program from the shaders
@@ -205,6 +237,14 @@ int main(int argc, char **argv) {
         // Process timers
 
         if (t60.processTick()) {
+        for(int i=0;i<5;i++)
+            if(coin_status[i] == -1)
+            {
+                //cout<<"sd\n";
+                c[i] = Coin(1);
+                coin_status[i] = 1;
+            }
+
             // 60 fps
             // OpenGL Draw commands
             draw();
