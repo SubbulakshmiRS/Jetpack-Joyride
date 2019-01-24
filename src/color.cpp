@@ -3,6 +3,7 @@
 const color_t COLOR_PINK = { 250, 128, 114 };
 const color_t COLOR_YELLOW = { 255, 255, 0 };
 const color_t COLOR_ORANGE = { 255, 69, 0 };
+const color_t COLOR_LIGHT_ORANGE = {255,165,0};
 const color_t COLOR_RED = { 255, 0, 0 };
 const color_t COLOR_BRIGHT_GREEN = { 0, 255, 0 };
 const color_t COLOR_GREEN = { 135, 211, 124 };

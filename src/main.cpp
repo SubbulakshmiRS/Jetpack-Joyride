@@ -5,6 +5,7 @@
 #include "coin.h"
 #include "enemy.h"
 #include "polygon.h"
+#include "collision.h"
 
 using namespace std;
 
@@ -23,6 +24,7 @@ float max_height,max_width;
 int coin_status[5];
 Coin c[5];
 Platform p;
+Streak s;
 //Polygon example;
 Wall w ;
 Beam b;
@@ -84,6 +86,7 @@ void draw() {
                 c[i].draw(VP);
             }
     b.draw(VP);
+    s.draw(VP);
     //example.draw(VP);
 }
 
@@ -140,6 +143,24 @@ void tick_elements() {
 
     player.tick(0);
     b.tick();
+    struct Point p_line[4],s_line[2];
+
+    p_line[0] = {player.position.x+0.5f,player.position.y+0.5f};
+    p_line[1] = {player.position.x+0.5f,player.position.y-0.5f};
+    p_line[2] = {player.position.x-0.5f,player.position.y+0.5f};
+    p_line[3] = {player.position.x-0.5f,player.position.y-0.5f};
+
+    s_line[0] = {s.part1.position.x ,s.part1.position.y};
+    s_line[1] = {s.part2.position.x ,s.part2.position.y};
+
+    for(int i =0;i<4;i++)
+    {
+        if(doIntersect(p_line[i],p_line[3-i],s_line[0],s_line[1]))
+        {
+            cout<<"HIT BY BEAM\n";
+            break;
+        }
+    }
     bounding_box_t p;
     p.x = player.position.x;
     p.y = player.position.y;
@@ -186,6 +207,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     p = Platform(1);
     w = Wall(1);
     b = Beam(1);
+    s = Streak(1);
     //example = Polygon(0,0,COLOR_BRIGHT_GREEN,0.5f,5);
     for(int i=0;i<5;i++)
         if(coin_status[i] == -1)

@@ -1,5 +1,6 @@
 #include "main.h"
 #include "ball.h"
+#include "polygon.h"
 
 #ifndef ENEMY_H
 #define ENEMY_H
@@ -34,12 +35,12 @@ private:
     VAO *object;
 };
 
-class Streak:public Ball{
+class Streak:public Polygon{
 public:
     Streak() {}
     Streak(int scene);
     glm::vec3 position;
-    Ball part1,part2;
+    Polygon part1,part2;
     float rotation;
     time_t time;
     int direction,number;
