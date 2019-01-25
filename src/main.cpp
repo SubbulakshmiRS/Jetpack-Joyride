@@ -7,6 +7,7 @@
 #include "polygon.h"
 #include "collision.h"
 #include "semi.h"
+#include "entities.h"
 
 using namespace std;
 
@@ -18,11 +19,12 @@ GLFWwindow *window;
 * Customizable functions *
 **************************/
 
-int safe;
+int safe,attract;
 int points;
 int stop;
 float max_height,max_width,radius;
 float distance_covered ;
+float attract_x,attract_y,attract_r;
 
 int coin_status[5];
 int stat ;
@@ -38,6 +40,7 @@ Ball enemy1 ;
 Ball player;
 Ball ball1;
 Ball ball2;
+Magnet mag;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -112,12 +115,17 @@ void draw() {
         bm.draw(VP);
 
     sm.draw(VP);
+
+    //cout<<player.position.y<<"\n";
     player.draw(VP);
+    mag.draw(VP);
 
     //example.draw(VP);
 }
 
 void tick_input(GLFWwindow *window) {
+
+    //cout<<player.position.y<<" C \n";
     int left  = glfwGetKey(window, GLFW_KEY_LEFT);
     int right = glfwGetKey(window, GLFW_KEY_RIGHT);
     int up = glfwGetKey(window, GLFW_KEY_UP);
@@ -125,10 +133,9 @@ void tick_input(GLFWwindow *window) {
     int zoomin = glfwGetKey(window, GLFW_KEY_Z);
     int zoomout = glfwGetKey(window, GLFW_KEY_X);
 
-
     if (left) {
         float ans;
-        if(safe ==1)
+        if(safe == 1)
         {
             ans = circle_point(radius,player.position.x - 0.1f - sm.position.x,sm.position.y);
         }
@@ -137,6 +144,7 @@ void tick_input(GLFWwindow *window) {
             player.position.y = ans;
             cout<<"safe in left\n";
         }
+        mag.position.x += 0.1f;
         sm.position.x += 0.1f;
         distance_covered -= 0.1f;
         bm.tick();
@@ -162,7 +170,7 @@ void tick_input(GLFWwindow *window) {
             cout<<"safe in right\n";
         }
         sm.position.x -= 0.1f;
-    
+        mag.position.x -= 0.1f;
         bm.tick();
         stat =0;
         distance_covered += 0.1f;
@@ -194,12 +202,13 @@ void tick_input(GLFWwindow *window) {
         //cout<<"out";
     }
 
+    //cout<<player.position.y<<" D \n";
     if(safe)
     return ;
-    while(player.position.y >0)
-        player.position.y -= 0.005;
+    if(player.position.y >0)
+        player.position.y -= 0.03f;
 
-
+    //cout<<player.position.y<<" E \n";
 }
 
 void tick_elements() {
@@ -210,16 +219,57 @@ void tick_elements() {
     float square = pow((player.position.x-sm.position.x),2.0) + pow((player.position.y-sm.position.y),2.0) ;
     radius = sqrt(square);
 
-    if(radius<=2.2f &&radius >=1.6f)
+    /*if(radius<=2.2f &&radius >=1.6f)
     {
         safe =1;
-        cout<<"in circle\n";
+        //cout<<"in circle\n";
     }
     else 
     {   
         //cout<<"radius :"<<radius<<"\n";
         radius =0;
         safe=0;
+    }*/
+
+    square = pow((player.position.x-mag.position.x),2.0) + pow((player.position.y-mag.position.y),2.0) ;
+    attract_r = sqrt(square);
+    if(attract_r <= mag.radius)
+    {
+        //cout<<"attract "<<attract_r<<"\n";
+        attract = 1;
+        float ratio = (player.position.x-mag.position.x)/(player.position.y-mag.position.y);
+        //cout<<"ratio "<<ratio<<"\n";
+        attract_y = sqrt((0.05f*0.05f)/(1+pow(ratio,2.0f)));
+        ratio = 1/ratio;
+        attract_x = sqrt((0.05f*0.05f)/(1+pow(ratio,2.0f)));
+        if((player.position.x-mag.position.x) >= 0)
+            attract_x *= (-1);
+        if((player.position.y-mag.position.y) <= 0)
+            attract_y *= (-1);
+
+        //cout<<"x "<<attract_x<<" y "<<attract_y<<"r "<<attract_r<<"\n";
+    }
+    else 
+        attract =0;
+
+    if (attract)
+    {
+        //cout<<player.position.y<<" A \n";
+        player.position.y -= (attract_y);
+        //cout<<player.position.y<<" B \n";
+        sm.position.x -= attract_x;
+        mag.position.x -= attract_x;    
+        bm.tick();
+        stat =0;
+        bm.position.x -= attract_x;
+    for(int i=0;i<5;i++)
+        if(coin_status[i] != -1)
+        {
+            c[i].position.x -= attract_x; // move the back ground
+            if(c[i].position.x <= -5.0f) 
+                coin_status[i] = -1;
+        }
+        
     }
 
     if(safe == 0)
@@ -281,7 +331,10 @@ void tick_elements() {
     light.height = 0.1f;
     if(detect_collision(p,light))
         cout<<"HIT\n";
+    return ;
     }
+
+
 
 }
 
@@ -301,6 +354,8 @@ void initGL(GLFWwindow *window, int width, int height) {
     s = Streak(1);
     bm = Boomerang(1);
     sm = Semi(1);
+    mag = Magnet(1);
+
     //example = Polygon(0,0,COLOR_BRIGHT_GREEN,0.5f,5);
     for(int i=0;i<5;i++)
         if(coin_status[i] == -1)
@@ -335,7 +390,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 
 int main(int argc, char **argv) {
-    safe =0;
+    safe =0;attract = 0;
     radius =0;
     stat =0;
     for(int i =0;i<5;i++)
