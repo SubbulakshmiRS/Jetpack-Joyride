@@ -6,6 +6,7 @@
 #include "enemy.h"
 #include "polygon.h"
 #include "collision.h"
+#include "semi.h"
 
 using namespace std;
 
@@ -17,9 +18,10 @@ GLFWwindow *window;
 * Customizable functions *
 **************************/
 
+int safe;
 int points;
 int stop;
-float max_height,max_width;
+float max_height,max_width,radius;
 float distance_covered ;
 
 int coin_status[5];
@@ -27,6 +29,7 @@ int stat ;
 Coin c[5];
 Platform p;
 Streak s;
+Semi sm;
 //Polygon example;
 Wall w ;
 Boomerang bm;
@@ -40,6 +43,21 @@ float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
 
 Timer t60(1.0 / 60);
+
+float circle_point(float radius,float z,float other_coordinate)
+{
+    float ans = (radius*radius) - (z*z);
+    if(ans<0)
+    {
+        safe = 0;
+        return 0;
+    }
+    ans = sqrt(ans);
+    ans *= (-1);
+    ans +=  other_coordinate;
+    cout<<"ANSWER "<<ans<<" Rad "<<radius<<" "<<z<<" "<<other_coordinate<<"\n";
+    return ans;
+}
 
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
@@ -81,7 +99,7 @@ void draw() {
     //enemy1.draw(VP);
     //ball1.draw(VP);
     //ball2.draw(VP);
-    player.draw(VP);
+
     for(int i=0;i<5;i++)
         if(coin_status[i] != -1)
             {
@@ -92,6 +110,9 @@ void draw() {
     s.draw(VP);
     if(bm.current <= 115)
         bm.draw(VP);
+
+    sm.draw(VP);
+    player.draw(VP);
 
     //example.draw(VP);
 }
@@ -106,16 +127,42 @@ void tick_input(GLFWwindow *window) {
 
 
     if (left) {
+        float ans;
+        if(safe ==1)
+        {
+            ans = circle_point(radius,player.position.x - 0.1f - sm.position.x,sm.position.y);
+        }
+        if(safe == 1)
+        {
+            player.position.y = ans;
+            cout<<"safe in left\n";
+        }
+        sm.position.x += 0.1f;
         distance_covered -= 0.1f;
         bm.tick();
         stat =0;
         bm.position.x += 0.1f;
+
         //cout<<"left";
     for(int i=0;i<5;i++)
         if(coin_status[i] != -1)
             c[i].position.x += 0.1; // move the back ground
     }
     else if (right) {
+        float ans;
+        if(safe ==1)
+        {
+            ans = circle_point(radius,player.position.x - 0.1f - sm.position.x,sm.position.y);
+        }
+
+        if(safe == 1)
+        {
+            ans = circle_point(radius,player.position.x+0.1f-sm.position.x,sm.position.y);
+            player.position.y = ans;
+            cout<<"safe in right\n";
+        }
+        sm.position.x -= 0.1f;
+    
         bm.tick();
         stat =0;
         distance_covered += 0.1f;
@@ -129,8 +176,12 @@ void tick_input(GLFWwindow *window) {
         }
     }
     else if (up){
+        if(safe)
+            return ;
+
         if(player.position.y != 4.0f) // to stagnate at the max height
             player.position.y += 0.1;
+        return ;
     }
     else if(zoomin){
         screen_zoom += 0.1;
@@ -142,11 +193,11 @@ void tick_input(GLFWwindow *window) {
         reset_screen();
         //cout<<"out";
     }
-    else 
-    {
-        while(player.position.y >0)
-            player.position.y -= 0.1;
-    }
+
+    if(safe)
+    return ;
+    while(player.position.y >0)
+        player.position.y -= 0.005;
 
 
 }
@@ -154,9 +205,25 @@ void tick_input(GLFWwindow *window) {
 void tick_elements() {
     //cout<<"tick";
 
-    player.tick(0);
-    b.tick();
+    //b.tick();
 
+    float square = pow((player.position.x-sm.position.x),2.0) + pow((player.position.y-sm.position.y),2.0) ;
+    radius = sqrt(square);
+
+    if(radius<=2.2f &&radius >=1.6f)
+    {
+        safe =1;
+        cout<<"in circle\n";
+    }
+    else 
+    {   
+        //cout<<"radius :"<<radius<<"\n";
+        radius =0;
+        safe=0;
+    }
+
+    if(safe == 0)
+    {
     if(stat > 100)
         {
             cout<<"yep alive";
@@ -214,6 +281,7 @@ void tick_elements() {
     light.height = 0.1f;
     if(detect_collision(p,light))
         cout<<"HIT\n";
+    }
 
 }
 
@@ -232,6 +300,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     b = Beam(1);
     s = Streak(1);
     bm = Boomerang(1);
+    sm = Semi(1);
     //example = Polygon(0,0,COLOR_BRIGHT_GREEN,0.5f,5);
     for(int i=0;i<5;i++)
         if(coin_status[i] == -1)
@@ -266,6 +335,8 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 
 int main(int argc, char **argv) {
+    safe =0;
+    radius =0;
     stat =0;
     for(int i =0;i<5;i++)
         coin_status[i] = -1;
