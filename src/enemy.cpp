@@ -143,13 +143,13 @@ Streak::Streak(int scene) {
     this->time =-1;
     this->number = 0;
     this->direction = -1;
-    float y = 3.0f,x=0.0f;
+    float y = rand()%3+1,x=4.0f;
     this->position = glm::vec3(x, y, 0);
     this->rotation = angles[(rand()%7)];
-    float c=cos((this->rotation*M_PI)/180);
-    float s=sin((this->rotation*M_PI)/180);
-    this->part1 = Polygon(this->position.x-(0.5f*c),this->position.y-(0.5f*s),COLOR_DEAD_BLACK,0.1f,10,0);
-    this->part2 = Polygon(this->position.x+(0.5f*c),this->position.y+(0.5f*s),COLOR_DEAD_BLACK,0.1f,10,0);
+    this->c=cos((this->rotation*M_PI)/180);
+    this->s=sin((this->rotation*M_PI)/180);
+    this->part1 = Polygon(this->position.x-(0.5f*this->c),this->position.y-(0.5f*this->s),COLOR_DEAD_BLACK,0.1f,10,0);
+    this->part2 = Polygon(this->position.x+(0.5f*this->c),this->position.y+(0.5f*this->s),COLOR_DEAD_BLACK,0.1f,10,0);
 
     // Our vertices. Three consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
     // A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
@@ -186,6 +186,10 @@ void Streak::set_position(float x, float y) {
 }
 
 void Streak::tick() {
+    this->part1.position.x=this->position.x-(0.5f*this->c);
+    this->part1.position.y=this->position.y-(0.5f*this->s);
+    this->part2.position.x=this->position.x+(0.5f*this->c);
+    this->part2.position.y=this->position.y+(0.5f*this->s);
 }
 
 /*

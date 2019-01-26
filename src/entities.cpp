@@ -3,7 +3,7 @@
 
 
 Magnet::Magnet(int scene) {
-    float x=1.0f,y=1.0f;
+    float x=-100.0f,y=1.0f;
     this->position = glm::vec3(x, y, 0);
     this->rotation = -30.0f;
     this->radius =1.0f;

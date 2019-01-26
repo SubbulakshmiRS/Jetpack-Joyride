@@ -5,7 +5,6 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-
 class Boomerang {
 public:
     Boomerang() {}
@@ -42,6 +41,23 @@ class Streak:public Polygon{
 public:
     Streak() {}
     Streak(int scene);
+    glm::vec3 position;
+    Polygon part1,part2;
+    float rotation;
+    float c,s;
+    time_t time;
+    int direction,number;
+    void draw(glm::mat4 VP);
+    void set_position(float x, float y);
+    void tick();
+private:
+    VAO *object;
+};
+
+class Viserys:public Polygon,public Ball{
+public:
+    Viserys() {}
+    Viserys(int scene);
     glm::vec3 position;
     Polygon part1,part2;
     float rotation;

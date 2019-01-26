@@ -30,7 +30,8 @@ int coin_status[5];
 int stat ;
 Coin c[5];
 Platform p;
-Streak s;
+int streak_status[2];
+Streak s[2];
 Semi sm;
 Wall w ;
 Boomerang bm;
@@ -38,6 +39,7 @@ Beam b;
 int beads_status[5];
 Boost beads[5];
 Player player;
+int mag_status;
 Magnet mag;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
@@ -100,7 +102,8 @@ void draw() {
 
     if(level >=3)
     {
-        mag.draw(VP);
+        if(mag_status)
+            mag.draw(VP);
         sm.draw(VP);
         if(bm.current <= 115)
             bm.draw(VP);
@@ -121,7 +124,12 @@ void draw() {
             {
                 c[i].draw(VP);
             }
-        s.draw(VP);
+
+        for(int i=0;i<2;i++)
+        if(streak_status[i] != -1)
+            {
+                s[i].draw(VP);
+            }
     }
 
     player.draw(VP);
@@ -176,6 +184,9 @@ void tick_input(GLFWwindow *window) {
             for(int i=0;i<5;i++)
                 if(coin_status[i] != -1)
                     c[i].position.x += 0.1; // move the back ground
+            for(int i=0;i<2;i++)
+                if(streak_status[i] != -1)
+                    s[i].position.x += 0.1;        
         }
 
         player.distance_covered -= 0.1f;
@@ -222,6 +233,14 @@ void tick_input(GLFWwindow *window) {
                     if(c[i].position.x <= -5.0f) 
                         coin_status[i] = -1;
                 }
+            for(int i=0;i<2;i++)
+                if(streak_status[i] != -1)
+                {
+                    s[i].position.x -= 0.1; // move the back ground
+                    if(s[i].position.x <= -5.0f) 
+                        streak_status[i] = -1;
+                }
+
         }
         player.distance_covered += 0.1f;
     }
@@ -261,6 +280,9 @@ void tick_elements() {
     player.tick();
     if(level>= 3)
     {
+        if(mag.position.x <= -5.0f)
+            mag_status = 0;
+
         square = pow((player.position.x-sm.position.x),2.0) + pow((player.position.y-sm.position.y),2.0) ;
         radius = sqrt(square);
 
@@ -304,7 +326,9 @@ void tick_elements() {
     }
     if(level >= 1)
     {
-        ;
+        for(int i=0;i<2;i++)
+            if(streak_status[i] != -1)
+                s[i].tick();
     }
 
     if (attract && level >= 3)
@@ -329,6 +353,13 @@ void tick_elements() {
                 if(beads[i].position.x <= -5.0f || beads[i].position.x >= 5.0f) 
                     beads_status[i] = -1;
             }
+            for(int i=0;i<2;i++)
+                if(streak_status[i] != -1)
+                {
+                    s[i].position.x -= 0.1; // move the back ground
+                    if(s[i].position.x <= -5.0f) 
+                        streak_status[i] = -1;
+                }
         }
        
     }
@@ -337,6 +368,13 @@ void tick_elements() {
     {
         if(level >= 3)
         {
+            bounding_box_t b;
+            b.x=bm.position.x;
+            b.y=bm.position.y;
+            b.width = 0.5f;
+            b.height = 0.1f;
+            if(detect_collision(p,b))
+                cout<<"Hit by boomerang\n";
             if(stat > 100)
                 {
                     bm.tick();
@@ -385,17 +423,21 @@ void tick_elements() {
             p_line[2] = {player.position.x-0.5f,player.position.y+0.5f};
             p_line[3] = {player.position.x-0.5f,player.position.y-0.5f};
 
-            s_line[0] = {s.part1.position.x ,s.part1.position.y};
-            s_line[1] = {s.part2.position.x ,s.part2.position.y};
-
-            for(int i =0;i<4;i++)
+            for(int i=0;i<2;i++)
+            if(streak_status[i]!= -1)
             {
-                if(doIntersect(p_line[i],p_line[3-i],s_line[0],s_line[1]))
+                s_line[0] = {s[i].part1.position.x ,s[i].part1.position.y};
+                s_line[1] = {s[i].part2.position.x ,s[i].part2.position.y};
+
+                for(int i =0;i<4;i++)
                 {
-                    //cout<<"Hit streak\n";
-                    player.points -= 2;
-                    cout<<"POINTS : "<<player.points<<"\n";
-                    break;
+                    if(doIntersect(p_line[i],p_line[3-i],s_line[0],s_line[1]))
+                    {
+                        //cout<<"Hit streak\n";
+                        player.points -= 2;
+                        cout<<"POINTS : "<<player.points<<"\n";
+                        break;
+                    }
                 }
             }
             for(int i=0;i<5;i++)
@@ -429,6 +471,7 @@ void initGL(GLFWwindow *window, int width, int height) {
         bm = Boomerang(1);
         sm = Semi(1);
         mag = Magnet(1);
+        mag_status = 1;
     }
     if(level >= 2)
     {
@@ -442,7 +485,12 @@ void initGL(GLFWwindow *window, int width, int height) {
     }
     if(level >= 1)
     {
-        s = Streak(1);
+        for(int i=0;i<2;i++)
+            if(streak_status[i] != -1)
+            {
+                s[i] = Streak(1);
+                streak_status[i] = 1;
+            }
         for(int i=0;i<5;i++)
             if(coin_status[i] == -1)
             {
@@ -479,10 +527,11 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 int main(int argc, char **argv) {
     //all initialization 
-    level =2;
+    level =3;
     safe =0;attract = 0;
     radius =0;
     stat =0;
+    mag_status = 0;
     for(int i =0;i<5;i++)
     {
         coin_status[i] = -1;
@@ -504,10 +553,20 @@ int main(int argc, char **argv) {
 
         if (t60.processTick()) {
         
+        if(level >= 1)
+        for(int i=0;i<2;i++)
+        {
+            if(streak_status[i] == -1)
+            {
+                s[i] = Streak(1);
+                streak_status[i] = 1;
+            }
+        }
+        
         for(int i=0;i<5;i++)
         {
             if(level >= 1)
-                if(coin_status[i] == -1)
+            if(coin_status[i] == -1)
                 {
                     //cout<<"sd\n";
                     c[i] = Coin(1);
@@ -518,7 +577,6 @@ int main(int argc, char **argv) {
                 {
                     beads[i] = Boost(1);
                     beads_status[i] = 1;
-
                 }
         }
 
