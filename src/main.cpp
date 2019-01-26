@@ -147,7 +147,7 @@ void tick_input(GLFWwindow *window) {
 
     int left  = glfwGetKey(window, GLFW_KEY_LEFT);
     int right = glfwGetKey(window, GLFW_KEY_RIGHT);
-    int up = glfwGetKey(window, GLFW_KEY_UP);
+    int up = glfwGetKey(window, GLFW_KEY_SPACE);
     int down = glfwGetKey(window, GLFW_KEY_DOWN);
     int zoomin = glfwGetKey(window, GLFW_KEY_Z);
     int zoomout = glfwGetKey(window, GLFW_KEY_X);
@@ -573,6 +573,7 @@ int main(int argc, char **argv) {
     window = initGLFW(width, height);
 
     initGL (window, width, height);
+    reset_screen();
     
     /* Draw in loop */
     while (!glfwWindowShouldClose(window)) {
@@ -632,6 +633,7 @@ int main(int argc, char **argv) {
     }
 
     quit(window);
+
 }
 
 bool detect_collision(bounding_box_t a, bounding_box_t b) {
