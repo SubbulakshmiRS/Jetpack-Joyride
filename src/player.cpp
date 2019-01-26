@@ -3,6 +3,7 @@
 
 
 Player::Player(int scene) {
+    this->distance_covered = 0;
     this->up = 0;
     float x =0,y=0;
     this->position = glm::vec3(x, y, 0);

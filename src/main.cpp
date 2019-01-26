@@ -27,21 +27,18 @@ float max_height,max_width,radius;
 float distance_covered ;
 float attract_x,attract_y,attract_r;
 
+int level ;
 int coin_status[5];
 int stat ;
 Coin c[5];
 Platform p;
 Streak s;
 Semi sm;
-//Polygon example;
 Wall w ;
 Boomerang bm;
 Beam b;
 Boost beads;
-Ball enemy1 ;
 Player player;
-Ball ball1;
-Ball ball2;
 Magnet mag;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
@@ -101,33 +98,36 @@ void draw() {
 
     p.draw(VP);
     w.draw(VP);
-    //enemy1.draw(VP);
-    //ball1.draw(VP);
-    //ball2.draw(VP);
 
-    for(int i=0;i<5;i++)
+    if(level >=3)
+    {
+        mag.draw(VP);
+        sm.draw(VP);
+        if(bm.current <= 115)
+            bm.draw(VP);
+    }
+    if(level>=2)
+    {
+        b.draw(VP);
+        beads.draw(VP);
+    }
+    if(level>=1)
+    {
+        for(int i=0;i<5;i++)
         if(coin_status[i] != -1)
             {
-                //cout<<"hurray\n";
                 c[i].draw(VP);
             }
-    b.draw(VP);
-    s.draw(VP);
-    if(bm.current <= 115)
-        bm.draw(VP);
+        s.draw(VP);
+    }
 
-    sm.draw(VP);
 
-    //cout<<player.position.y<<"\n";
+
     player.draw(VP);
-    mag.draw(VP);
-    beads.draw(VP);
-    //example.draw(VP);
 }
 
 void tick_input(GLFWwindow *window) {
 
-    //cout<<player.position.y<<" C \n";
     int left  = glfwGetKey(window, GLFW_KEY_LEFT);
     int right = glfwGetKey(window, GLFW_KEY_RIGHT);
     int up = glfwGetKey(window, GLFW_KEY_UP);
@@ -142,238 +142,260 @@ void tick_input(GLFWwindow *window) {
     
     if (left) {
         float ans;
-        if(safe == 1)
+        if(safe == 1 && level >=3)
         {
             ans = circle_point(radius,player.position.x - 0.1f - sm.position.x,sm.position.y);
         }
-        if(safe == 1)
+
+        if(safe == 1 && level >=3)
         {
             player.position.y = ans;
-            //cout<<"safe in left\n";
         }
-        mag.position.x += 0.1f;
-        sm.position.x += 0.1f;
-        distance_covered -= 0.1f;
-        bm.tick();
-        stat =0;
-        bm.position.x += 0.1f;
+        
+        if(level >= 3)
+        {
+            mag.position.x += 0.1f;
+            sm.position.x += 0.1f;
+            bm.tick();
+            stat =0;
+            bm.position.x += 0.1f;
+        }        
+        if(level >= 2)
+        {
+            ;
+        }        
+        if(level >= 1)
+        {
+            for(int i=0;i<5;i++)
+                if(coin_status[i] != -1)
+                    c[i].position.x += 0.1; // move the back ground
+        }
 
-        //cout<<"left";
-    for(int i=0;i<5;i++)
-        if(coin_status[i] != -1)
-            c[i].position.x += 0.1; // move the back ground
+        distance_covered -= 0.1f;
+
     }
     else if (right) {
         float ans;
-        if(safe ==1)
+        if(safe ==1 && level >=3)
         {
             ans = circle_point(radius,player.position.x - 0.1f - sm.position.x,sm.position.y);
         }
 
-        if(safe == 1)
+        if(safe == 1 && level>=3)
         {
             ans = circle_point(radius,player.position.x+0.1f-sm.position.x,sm.position.y);
             player.position.y = ans;
-            //cout<<"safe in right\n";
         }
-        sm.position.x -= 0.1f;
-        mag.position.x -= 0.1f;
-        bm.tick();
-        stat =0;
-        distance_covered += 0.1f;
-        bm.position.x -= 0.1f;
-    for(int i=0;i<5;i++)
-        if(coin_status[i] != -1)
+
+        if(level >= 3)
         {
-            c[i].position.x -= 0.1; // move the back ground
-            if(c[i].position.x <= -5.0f) 
-                coin_status[i] = -1;
+            mag.position.x -= 0.1f;
+            sm.position.x -= 0.1f;
+            bm.tick();
+            stat =0;
+            bm.position.x -= 0.1f;
+        }       
+        if(level >= 2)
+        {
+            // BEAM
         }
+        
+        if(level >= 1)
+        {
+            for(int i=0;i<5;i++)
+                if(coin_status[i] != -1)
+                {
+                    c[i].position.x -= 0.1; // move the back ground
+                    if(c[i].position.x <= -5.0f) 
+                        coin_status[i] = -1;
+                }
+        }
+        distance_covered += 0.1f;
     }
     else if (up){
-        if(safe)
+        if(safe && level>= 3)
             return ;
-
         if(player.position.y != 4.0f) // to stagnate at the max height
             player.position.y += 0.1;
+
         return ;
     }
     else if(zoomin){
         screen_zoom += 0.1;
         reset_screen();
-        //cout<<"zoom";
     }
     else if(zoomout){
         screen_zoom -= 0.1;
         reset_screen();
-        //cout<<"out";
     }
 
-    //cout<<player.position.y<<" D \n";
-    if(safe)
+    if(level >= 3 && safe)
     return ;
     if(player.position.y >0)
         player.position.y -= 0.03f;
 
-    //cout<<player.position.y<<" E \n";
 }
 
 void tick_elements() {
-    //cout<<"tick";
 
-    //b.tick();
-    player.tick();
-    beads.tick();
-    //cout<<beads.position.x<<" ";
-    float square = pow((player.position.x-sm.position.x),2.0) + pow((player.position.y-sm.position.y),2.0) ;
-    radius = sqrt(square);
-
-    /*if(radius<=2.2f &&radius >=1.6f)
-    {
-        safe =1;
-        //cout<<"in circle\n";
-    }
-    else 
-    {   
-        //cout<<"radius :"<<radius<<"\n";
-        radius =0;
-        safe=0;
-    }*/
-
-    square = pow((player.position.x-mag.position.x),2.0) + pow((player.position.y-mag.position.y),2.0) ;
-    attract_r = sqrt(square);
-    if(attract_r <= mag.radius)
-    {
-        //cout<<"attract "<<attract_r<<"\n";
-        attract = 1;
-        float ratio = (player.position.x-mag.position.x)/(player.position.y-mag.position.y);
-        //cout<<"ratio "<<ratio<<"\n";
-        attract_y = sqrt((0.05f*0.05f)/(1+pow(ratio,2.0f)));
-        ratio = 1/ratio;
-        attract_x = sqrt((0.05f*0.05f)/(1+pow(ratio,2.0f)));
-        if((player.position.x-mag.position.x) >= 0)
-            attract_x *= (-1);
-        if((player.position.y-mag.position.y) <= 0)
-            attract_y *= (-1);
-
-        //cout<<"x "<<attract_x<<" y "<<attract_y<<"r "<<attract_r<<"\n";
-    }
-    else 
-        attract =0;
-
-    if (attract)
-    {
-        //cout<<player.position.y<<" A \n";
-        player.position.y -= (attract_y);
-        //cout<<player.position.y<<" B \n";
-        sm.position.x -= attract_x;
-        mag.position.x -= attract_x;    
-        bm.tick();
-        stat =0;
-        bm.position.x -= attract_x;
-    for(int i=0;i<5;i++)
-        if(coin_status[i] != -1)
-        {
-            c[i].position.x -= attract_x; // move the back ground
-            if(c[i].position.x <= -5.0f) 
-                coin_status[i] = -1;
-        }
-        
-    }
-
-    if(safe == 0)
-    {
-    if(stat > 100)
-        {
-            cout<<"yep alive";
-            bm.tick();
-            stat =0;
-        }
-    else
-        stat++;
-
-    struct Point p_line[4],s_line[2];
-
-    p_line[0] = {player.position.x+0.5f,player.position.y+0.5f};
-    p_line[1] = {player.position.x+0.5f,player.position.y-0.5f};
-    p_line[2] = {player.position.x-0.5f,player.position.y+0.5f};
-    p_line[3] = {player.position.x-0.5f,player.position.y-0.5f};
-
-    s_line[0] = {s.part1.position.x ,s.part1.position.y};
-    s_line[1] = {s.part2.position.x ,s.part2.position.y};
-
-    for(int i =0;i<4;i++)
-    {
-        if(doIntersect(p_line[i],p_line[3-i],s_line[0],s_line[1]))
-        {
-            //cout<<"HIT BY BEAM\n";
-            break;
-        }
-    }
+    float square;
     bounding_box_t p;
     p.x = player.position.x;
     p.y = player.position.y;
     p.width = 1.0f;
     p.height = 1.0f;
 
-    for(int i=0;i<5;i++)
-        if(coin_status[i] != -1)
+    player.tick();
+    if(level>= 3)
+    {
+        square = pow((player.position.x-sm.position.x),2.0) + pow((player.position.y-sm.position.y),2.0) ;
+        radius = sqrt(square);
+
+        if(radius<=2.2f &&radius >=1.6f)
         {
-            bounding_box_t b;
-            b.x = c[i].position.x;
-            b.y = c[i].position.y;
-            b.width = 0.2f;
-            b.height = 0.2f; 
-            if (detect_collision(b,p))
-            {
-                points += 10; // getting the coins 
-                cout<<"POINTS : "<<points<<"\n";
-                coin_status[i] = -1;
-            }       
+            safe =1;
+        }
+        else 
+        {   
+            radius=0;
+            safe=0;
         }
 
+        square = pow((player.position.x-mag.position.x),2.0) + pow((player.position.y-mag.position.y),2.0) ;
+        attract_r = sqrt(square);
+        if(attract_r <= mag.radius)
+        {
+            attract = 1;
+            float ratio = (player.position.x-mag.position.x)/(player.position.y-mag.position.y);
+            attract_y = sqrt((0.05f*0.05f)/(1+pow(ratio,2.0f)));
+            ratio = 1/ratio;
+            attract_x = sqrt((0.05f*0.05f)/(1+pow(ratio,2.0f)));
+            if((player.position.x-mag.position.x) >= 0)
+                attract_x *= (-1);
+            if((player.position.y-mag.position.y) <= 0)
+                attract_y *= (-1);
 
-    bounding_box_t light;
-    light.x=b.position.x;
-    light.y=b.position.y;
-    light.width = 8.0f;
-    light.height = 0.1f;
-    if(detect_collision(p,light))
-        cout<<"HIT\n";
-    return ;
+        }
+        else 
+            attract =0;
+    }
+    if(level >= 2)
+    {
+        beads.tick();
+    }
+    if(level >= 1)
+    {
+        ;
+    }
+
+    if (attract && level >= 3)
+    {
+        player.position.y -= (attract_y);
+        sm.position.x -= attract_x;
+        mag.position.x -= attract_x;    
+        bm.tick();
+        stat =0;
+        bm.position.x -= attract_x;
+        for(int i=0;i<5;i++)
+            if(coin_status[i] != -1)
+            {
+                c[i].position.x -= attract_x; // move the back ground
+                if(c[i].position.x <= -5.0f) 
+                    coin_status[i] = -1;
+            }        
+    }
+
+    if(safe == 0)
+    {
+        if(level >= 3)
+        {
+            if(stat > 100)
+                {
+                    bm.tick();
+                    stat =0;
+                }
+            else
+                stat++;
+        }
+        if(level >= 2)
+        {
+            bounding_box_t light;
+            light.x=b.position.x;
+            light.y=b.position.y;
+            light.width = 8.0f;
+            light.height = 0.1f;
+            if(detect_collision(p,light))
+                cout<<"Hit by beam\n";
+        }
+        if(level >= 1)
+        {
+            struct Point p_line[4],s_line[2];
+
+            p_line[0] = {player.position.x+0.5f,player.position.y+0.5f};
+            p_line[1] = {player.position.x+0.5f,player.position.y-0.5f};
+            p_line[2] = {player.position.x-0.5f,player.position.y+0.5f};
+            p_line[3] = {player.position.x-0.5f,player.position.y-0.5f};
+
+            s_line[0] = {s.part1.position.x ,s.part1.position.y};
+            s_line[1] = {s.part2.position.x ,s.part2.position.y};
+
+            for(int i =0;i<4;i++)
+            {
+                if(doIntersect(p_line[i],p_line[3-i],s_line[0],s_line[1]))
+                {
+                    cout<<"Hit streak\n";
+                    break;
+                }
+            }
+            for(int i=0;i<5;i++)
+                if(coin_status[i] != -1)
+                {
+                    bounding_box_t b;
+                    b.x = c[i].position.x;
+                    b.y = c[i].position.y;
+                    b.width = 0.2f;
+                    b.height = 0.2f; 
+                    if (detect_collision(b,p))
+                    {
+                        points += 10; // getting the coins 
+                        cout<<"POINTS : "<<points<<"\n";
+                        coin_status[i] = -1;
+                    }       
+                }
+        }
+
+    }
+}
+
+void initGL(GLFWwindow *window, int width, int height) {
+
+    player = Player(1);
+    p = Platform(1);
+    w = Wall(1);
+
+    if(level >= 3)
+    {
+        bm = Boomerang(1);
+        sm = Semi(1);
+        mag = Magnet(1);
+    }
+    if(level >= 2)
+    {
+        beads = Boost(1);
+        b = Beam(1);
+    }
+    if(level >= 1)
+    {
+        s = Streak(1);
+        for(int i=0;i<5;i++)
+            if(coin_status[i] == -1)
+            {
+                c[i] = Coin(1);
+                coin_status[i] = 1;
+            }
     }
 
 
-
-}
-
-/* Initialize the OpenGL rendering properties */
-/* Add all the models to be created here */
-void initGL(GLFWwindow *window, int width, int height) {
-    /* Objects should be created before any other gl function and shaders */
-    // Create the models
-
-    ball1       = Ball(1, 1, COLOR_RED,0.5f,0);
-    ball2       = Ball(3, 3, COLOR_GREEN,1.0f,0);
-    player = Player(1);
-    enemy1 = Ball(1, 2, COLOR_BLACK,0.5f,0);
-    p = Platform(1);
-    w = Wall(1);
-    b = Beam(1);
-    s = Streak(1);
-    bm = Boomerang(1);
-    sm = Semi(1);
-    mag = Magnet(1);
-    beads = Boost(1);
-
-    //example = Polygon(0,0,COLOR_BRIGHT_GREEN,0.5f,5);
-    for(int i=0;i<5;i++)
-        if(coin_status[i] == -1)
-        {
-            //cout<<"sd\n";
-            c[i] = Coin(1);
-            coin_status[i] = 1;
-        }
         
         
 
@@ -400,6 +422,8 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 
 int main(int argc, char **argv) {
+    //all initialization 
+    level =3;
     safe =0;attract = 0;
     radius =0;
     stat =0;

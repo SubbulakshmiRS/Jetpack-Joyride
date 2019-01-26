@@ -12,6 +12,7 @@ public:
     Player(int scene);
     glm::vec3 position;
     int up;
+    float distance_covered;
     void draw(glm::mat4 VP);
     void set_position(float x, float y);
     void tick();
