@@ -43,6 +43,7 @@ int mag_status;
 Magnet mag;
 int wet ;
 Water water;
+Viserys v;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -107,7 +108,10 @@ void draw() {
             water.draw(VP);
         b.draw(VP);
     }
-
+    if(level >= 4)
+    {
+        v.draw(VP);
+    }
     if(level >=3)
     {
         if(mag_status)
@@ -168,7 +172,10 @@ void tick_input(GLFWwindow *window) {
         {
             player.position.y = ans;
         }
-        
+        if(level >= 4)
+        {
+            v.position.x += 0.1f;
+        }
         if(level >= 3)
         {
             mag.position.x += 0.1f;
@@ -216,6 +223,10 @@ void tick_input(GLFWwindow *window) {
             player.position.y = ans;
         }
 
+        if(level >= 4)
+        {
+            v.position.x -= 0.1f;
+        }
         if(level >= 3)
         {
             mag.position.x -= 0.1f;
@@ -283,6 +294,8 @@ void tick_input(GLFWwindow *window) {
 
 void tick_elements() {
 
+    if(player.lives <= 0)
+        quit(window);
     float square;
     bounding_box_t p;
     p.x = player.position.x;
@@ -295,6 +308,11 @@ void tick_elements() {
     {
         water.tick();
         b.tick();
+    }
+    if(level >= 4)
+    {
+        v.position.y = player.position.y;
+        v.tick();
     }
     if(level>= 3)
     {
@@ -384,6 +402,31 @@ void tick_elements() {
 
     if(safe == 0)
     {
+        if(level >= 4)
+        {
+            bounding_box_t b;
+            b.x=v.position.x;
+            b.y=v.position.y;
+            b.width = 1.0f;
+            b.height = 1.0f;
+            if(detect_collision(p,b))
+            {
+                cout<<"DEAD\n";
+                player.lives = 0;
+            }
+
+        for(std::vector<Polygon>::iterator it = v.bullets.begin(); it != v.bullets.end(); ++it) {
+          square = pow((player.position.x - it->position.x),2.0f)  + pow((player.position.y - it->position.y),2.0f);
+          radius = sqrt(square);
+          if(radius <= 0.7f)
+            {
+                cout<<"DEAD\n";
+                player.lives = 0;
+            }
+            
+
+        }              
+        }
         if(level >= 3)
         {
             bounding_box_t b;
@@ -405,7 +448,7 @@ void tick_elements() {
         {
             square = pow((player.position.x-water.position.x),2.0) + pow((player.position.y-water.position.y),2.0) ;
             radius = sqrt(square);
-            if(radius <= 0.3f)
+            if(radius <= 0.5f)
                 wet =1;
             else wet =0; 
             if(wet == 0)
@@ -418,7 +461,7 @@ void tick_elements() {
                 if(detect_collision(p,light))
                 {
                     cout<<"Hit by beam\n";
-                    player.lives -= 1;
+                    player.lives -= 0.01;
                 }
             }
 
@@ -506,6 +549,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     mag_status = 1;
     water = Water(1);
     b = Beam(1);
+    v = Viserys(1);
 
     for(int i=0;i<5;i++)
         if(beads_status[i] == -1)
@@ -580,7 +624,7 @@ int main(int argc, char **argv) {
         // Process timers
 
         if (t60.processTick()) {
-
+        
         if(level >= 1)
             for(int i=0;i<2;i++)
             {
@@ -612,20 +656,27 @@ int main(int argc, char **argv) {
             glfwSwapBuffers(window);
             tick_elements();
             tick_input(window);
-            if(player.distance_covered >= 20.0f)
+            if(level == 3 && player.distance_covered >= 40.0f)
             {
+                cout<<"POINTS "<<player.points<<" LIVES "<<player.lives<<"\n";
+                cout<<"\nLEVEL : 4 \n";
+                level = 4;
+            }
+            else if(level == 2 && player.distance_covered >= 20.0f)
+            {
+                cout<<"POINTS "<<player.points<<" LIVES "<<player.lives<<"\n";
+                cout<<"\nLEVEL : 3 \n";
                 level = 3;
                 mag_status = 1;
                 mag.position.x = 7.0f;
             }
-            else if(player.distance_covered >= 10.0f)
+            else if(level == 1 && player.distance_covered >= 10.0f)
             {
+                cout<<"POINTS "<<player.points<<" LIVES "<<player.lives<<"\n";
+                cout<<"\nLEVEL : 2 \n";
                 level = 2;
             }
-            else 
-                level =1;
-            
-            cout<<"level "<<level<<"\n";
+
         }
 
         // Poll for Keyboard and mouse events

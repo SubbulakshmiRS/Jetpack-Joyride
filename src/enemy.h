@@ -54,15 +54,14 @@ private:
     VAO *object;
 };
 
-class Viserys:public Polygon,public Ball{
+class Viserys:public Polygon{
 public:
     Viserys() {}
     Viserys(int scene);
     glm::vec3 position;
-    Polygon part1,part2;
+    Polygon part;
     float rotation;
-    time_t time;
-    int direction,number;
+    std::vector<Polygon> bullets;
     void draw(glm::mat4 VP);
     void set_position(float x, float y);
     void tick();

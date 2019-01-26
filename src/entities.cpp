@@ -67,8 +67,8 @@ Boost::Boost(int scene) {
     int type = rand()%4;
     float x=options[type].first,y=options[type].second;
     this->position = glm::vec3(x, y, 0);
-    this->speed_x = (rand()%3 +0.1f)*(directions[type].first)*(0.1f);
-    this->speed_y = (rand()%3 )*(directions[type].second)*(0.1f);
+    this->speed_x = ((rand()%4)/10)*(directions[type].first)*(0.1f);
+    this->speed_y = ((rand()%2)/10)*(directions[type].second)*(0.1f);
     this->acc_y = 0.005f;
     this->color = rand()%3;
     this->part = Polygon(this->position.x,this->position.y,choices[color],0.1,10,0);
