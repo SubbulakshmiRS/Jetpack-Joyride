@@ -41,6 +41,8 @@ Boost beads[5];
 Player player;
 int mag_status;
 Magnet mag;
+int wet ;
+Water water;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 float camera_rotation_angle = 0;
@@ -58,7 +60,6 @@ float circle_point(float radius,float z,float other_coordinate)
     ans = sqrt(ans);
     ans *= (-1);
     ans +=  other_coordinate;
-    //cout<<"ANSWER "<<ans<<" Rad "<<radius<<" "<<z<<" "<<other_coordinate<<"\n";
     return ans;
 }
 
@@ -100,6 +101,13 @@ void draw() {
     p.draw(VP);
     w.draw(VP);
 
+    if(level == 2)
+    {
+        if(!wet)
+            water.draw(VP);
+        b.draw(VP);
+    }
+
     if(level >=3)
     {
         if(mag_status)
@@ -110,7 +118,7 @@ void draw() {
     }
     if(level>=2)
     {
-        b.draw(VP);
+
         for(int i=0;i<5;i++)
         if(beads_status[i] != -1)
             {
@@ -178,6 +186,7 @@ void tick_input(GLFWwindow *window) {
                     if(beads[i].position.x <= -5.0f || beads[i].position.x >= 5.0f) 
                         beads_status[i] = -1;
                 }
+            water.position.x += 0.1f;
         }        
         if(level >= 1)
         {
@@ -189,10 +198,12 @@ void tick_input(GLFWwindow *window) {
                     s[i].position.x += 0.1;        
         }
 
+        if(level == 2)
+            water.position.x += 0.1f;
         player.distance_covered -= 0.1f;
 
     }
-    else if (right) {
+    if (right) {
         float ans;
         if(safe ==1 && level >=3)
         {
@@ -240,14 +251,16 @@ void tick_input(GLFWwindow *window) {
                     if(s[i].position.x <= -5.0f) 
                         streak_status[i] = -1;
                 }
-
         }
+
+        if(level == 2)
+            water.position.x -= 0.1f;
         player.distance_covered += 0.1f;
     }
-    else if (up){
+    if (up){
         if(safe && level>= 3)
             return ;
-        if(player.position.y != 4.0f) // to stagnate at the max height
+        if(player.position.y <= 3.5f) // to stagnate at the max height
             player.position.y += 0.1;
 
         return ;
@@ -278,6 +291,11 @@ void tick_elements() {
     p.height = 1.0f;
 
     player.tick();
+    if(level == 2)
+    {
+        water.tick();
+        b.tick();
+    }
     if(level>= 3)
     {
         if(mag.position.x <= -5.0f)
@@ -383,15 +401,31 @@ void tick_elements() {
             else
                 stat++;
         }
+        if(level == 2)
+        {
+            square = pow((player.position.x-water.position.x),2.0) + pow((player.position.y-water.position.y),2.0) ;
+            radius = sqrt(square);
+            if(radius <= 0.3f)
+                wet =1;
+            else wet =0; 
+            if(wet == 0)
+            {
+                bounding_box_t light;
+                light.x=b.position.x;
+                light.y=b.position.y;
+                light.width = 8.0f;
+                light.height = 0.1f;
+                if(detect_collision(p,light))
+                {
+                    cout<<"Hit by beam\n";
+                    player.lives -= 1;
+                }
+            }
+
+        }
         if(level >= 2)
         {
-            bounding_box_t light;
-            light.x=b.position.x;
-            light.y=b.position.y;
-            light.width = 8.0f;
-            light.height = 0.1f;
-            if(detect_collision(p,light))
-                cout<<"Hit by beam\n";
+
             for(int i=0;i<5;i++)
                 if(beads_status[i] != -1)
                 {
@@ -435,7 +469,7 @@ void tick_elements() {
                     {
                         //cout<<"Hit streak\n";
                         player.points -= 2;
-                        cout<<"POINTS : "<<player.points<<"\n";
+                        //cout<<"SA POINTS : "<<player.points<<"\n";
                         break;
                     }
                 }
@@ -466,40 +500,32 @@ void initGL(GLFWwindow *window, int width, int height) {
     p = Platform(1);
     w = Wall(1);
 
-    if(level >= 3)
-    {
-        bm = Boomerang(1);
-        sm = Semi(1);
-        mag = Magnet(1);
-        mag_status = 1;
-    }
-    if(level >= 2)
-    {
-        for(int i=0;i<5;i++)
-            if(beads_status[i] == -1)
-            {
-                beads[i] = Boost(1);
-                beads_status[i] = 1;
-            }
-        b = Beam(1);
-    }
-    if(level >= 1)
-    {
-        for(int i=0;i<2;i++)
-            if(streak_status[i] != -1)
-            {
-                s[i] = Streak(1);
-                streak_status[i] = 1;
-            }
-        for(int i=0;i<5;i++)
-            if(coin_status[i] == -1)
-            {
-                c[i] = Coin(1);
-                coin_status[i] = 1;
-            }
-    }
+    bm = Boomerang(1);
+    sm = Semi(1);
+    mag = Magnet(1);
+    mag_status = 1;
+    water = Water(1);
+    b = Beam(1);
 
+    for(int i=0;i<5;i++)
+        if(beads_status[i] == -1)
+        {
+            beads[i] = Boost(1);
+            beads_status[i] = 1;
+        }
 
+    for(int i=0;i<2;i++)
+        if(streak_status[i] != -1)
+        {
+            s[i] = Streak(1);
+            streak_status[i] = 1;
+        }
+    for(int i=0;i<5;i++)
+        if(coin_status[i] == -1)
+        {
+            c[i] = Coin(1);
+            coin_status[i] = 1;
+        }
         
         
 
@@ -527,7 +553,8 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 int main(int argc, char **argv) {
     //all initialization 
-    level =3;
+    wet =0;
+    level =1;
     safe =0;attract = 0;
     radius =0;
     stat =0;
@@ -552,26 +579,24 @@ int main(int argc, char **argv) {
         // Process timers
 
         if (t60.processTick()) {
-        
+
         if(level >= 1)
-        for(int i=0;i<2;i++)
-        {
-            if(streak_status[i] == -1)
+            for(int i=0;i<2;i++)
             {
-                s[i] = Streak(1);
-                streak_status[i] = 1;
+                if(streak_status[i] == -1)
+                {
+                    s[i] = Streak(1);
+                    streak_status[i] = 1;
+                }
             }
-        }
-        
         for(int i=0;i<5;i++)
         {
             if(level >= 1)
-            if(coin_status[i] == -1)
-                {
-                    //cout<<"sd\n";
-                    c[i] = Coin(1);
-                    coin_status[i] = 1;
-                }
+                if(coin_status[i] == -1)
+                    {
+                        c[i] = Coin(1);
+                        coin_status[i] = 1;
+                    }
             if(level>=2)
                 if(beads_status[i] == -1)
                 {
@@ -579,15 +604,27 @@ int main(int argc, char **argv) {
                     beads_status[i] = 1;
                 }
         }
-
             // 60 fps
             // OpenGL Draw commands
             draw();
             // Swap Frame Buffer in double buffering
             glfwSwapBuffers(window);
-
             tick_elements();
             tick_input(window);
+            if(player.distance_covered >= 20.0f)
+            {
+                level = 3;
+                mag_status = 1;
+                mag.position.x = 7.0f;
+            }
+            else if(player.distance_covered >= 10.0f)
+            {
+                level = 2;
+            }
+            else 
+                level =1;
+            
+            cout<<"level "<<level<<"\n";
         }
 
         // Poll for Keyboard and mouse events

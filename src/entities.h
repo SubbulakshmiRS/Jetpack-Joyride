@@ -35,4 +35,16 @@ public:
 
 };
 
+class Water :public Polygon{
+public:
+    Water() {}
+    Water(int scene);
+    glm::vec3 position;
+    Polygon part;
+    void draw(glm::mat4 VP);
+    void set_position(float x, float y);
+    void tick();
+
+};
+
 #endif // ENTITIES_H

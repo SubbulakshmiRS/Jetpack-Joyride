@@ -90,3 +90,25 @@ void Boost::tick(){
     this->part.position.y += this->speed_y;
     // check if the item is within the boundaries of the screen ( += 10 all sides)
 }
+
+Water::Water(int scene) {
+
+    float x =rand()%6-3.0f,y=2.5f;
+    this->position = glm::vec3(x, y, 0);
+    this->part = Polygon(this->position.x,this->position.y,COLOR_BLUE,0.2f,5,0);
+}
+
+void Water::draw(glm::mat4 VP) {
+    this->part.draw(VP);
+}
+
+
+void Water::set_position(float x, float y) {
+    this->position = glm::vec3(x, y, 0);
+}
+
+void Water::tick() {
+    this->part.position.x =this->position.x;
+    this->part.position.y =this->position.y;
+}
+

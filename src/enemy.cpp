@@ -84,7 +84,7 @@ Beam::Beam(int scene) {
     this->time =-1;
     this->number = 0;
     this->direction = -1;
-    float y = 4.0f,x=0.0f;
+    float y = 3.8f,x=0.0f;
     this->position = glm::vec3(x, y, 0);
     this->rotation = 0;
     this->part1 = Ball(-4.0f,this->position.y,COLOR_DEAD_BLACK,0.1f,90.0f);
@@ -127,7 +127,7 @@ void Beam::set_position(float x, float y) {
 void Beam::tick() {
     if (this->position.y >= 4.0f)
         this->direction = -1;
-    else if(this->position.y <= 1.0f)
+    else if(this->position.y <= -4.0f)
         this->direction = 1;
 
     //this->direction = 0;
@@ -143,7 +143,7 @@ Streak::Streak(int scene) {
     this->time =-1;
     this->number = 0;
     this->direction = -1;
-    float y = rand()%3+1,x=4.0f;
+    float y = rand()%3+1,x=-4.0f;
     this->position = glm::vec3(x, y, 0);
     this->rotation = angles[(rand()%7)];
     this->c=cos((this->rotation*M_PI)/180);

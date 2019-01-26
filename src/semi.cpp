@@ -3,7 +3,7 @@
 
 
 Semi::Semi(int scene) {
-    float x =2.0f,y=1.0f ;
+    float x =6.0f,y=0.5f ;
     float rotation =0;
     this->position = glm::vec3(x, y, 0);
     speed = 0.05;
