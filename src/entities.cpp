@@ -49,3 +49,30 @@ int Magnet::move(float x , float y){
     // check if the item is within the boundaries of the screen ( += 10 all sides)
     return 0;
 }
+
+Boost::Boost(int scene) {
+    color_t choices[]={COLOR_BLUE,COLOR_BRIGHT_GREEN,COLOR_PINK};
+    float x=-1.0f,y=1.0f;
+    this->position = glm::vec3(x, y, 0);
+    this->speed_x = 0.1f;
+    this->speed_y = 0;
+    this->acc_y = 0.005f;
+    this->part = Polygon(this->position.x,this->position.y,choices[rand()%3],0.1,10);
+
+}
+
+void Boost::draw(glm::mat4 VP) {
+    this->part.draw(VP);
+}
+
+void Boost::set_position(float x, float y) {
+    this->position = glm::vec3(x, y, 0);
+}
+
+void Boost::tick(){
+
+    this->part.position.x += this->speed_x;
+    this->speed_y += this->acc_y;
+    this->part.position.y -= this->speed_y;
+    // check if the item is within the boundaries of the screen ( += 10 all sides)
+}

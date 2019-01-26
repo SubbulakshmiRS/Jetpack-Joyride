@@ -36,6 +36,7 @@ Semi sm;
 Wall w ;
 Boomerang bm;
 Beam b;
+Boost beads;
 Ball enemy1 ;
 Ball player;
 Ball ball1;
@@ -119,7 +120,7 @@ void draw() {
     //cout<<player.position.y<<"\n";
     player.draw(VP);
     mag.draw(VP);
-
+    beads.draw(VP);
     //example.draw(VP);
 }
 
@@ -215,7 +216,8 @@ void tick_elements() {
     //cout<<"tick";
 
     //b.tick();
-
+    beads.tick();
+    cout<<beads.position.x<<" ";
     float square = pow((player.position.x-sm.position.x),2.0) + pow((player.position.y-sm.position.y),2.0) ;
     radius = sqrt(square);
 
@@ -355,6 +357,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     bm = Boomerang(1);
     sm = Semi(1);
     mag = Magnet(1);
+    beads = Boost(1);
 
     //example = Polygon(0,0,COLOR_BRIGHT_GREEN,0.5f,5);
     for(int i=0;i<5;i++)

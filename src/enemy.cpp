@@ -130,7 +130,7 @@ void Beam::tick() {
     else if(this->position.y <= 1.0f)
         this->direction = 1;
 
-    this->direction = 0;
+    //this->direction = 0;
     this->position.y += this->direction*0.05f;
     float y = this->position.y;
     this->part1.position.y= this->part2.position.y = y;

@@ -31,6 +31,7 @@ Polygon ::Polygon(float x, float y,color_t color,float size,int n) {
 }
 
 void Polygon::draw(glm::mat4 VP) {
+    std::cout<<"POLYGON DRAW"<<this->position.x<<" "<<this->position.y<<"\n";
     Matrices.model = glm::mat4(0.5f);
     glm::mat4 translate = glm::translate (this->position);    // glTranslatef
     glm::mat4 rotate    = glm::rotate((float) (this->rotation * M_PI / 180.0f), glm::vec3(1, 0, 0));

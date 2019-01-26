@@ -1,4 +1,5 @@
 #include "main.h"
+#include "polygon.h"
 
 #ifndef ENTITIES_H
 #define ENTITIES_H
@@ -14,6 +15,22 @@ public:
     void draw(glm::mat4 VP);
     void set_position(float x, float y);
     int move(float x , float y);
+    double speed;
+private:
+    VAO *object1;
+    VAO *object2;    
+};
+
+class Boost :public Polygon{
+public:
+    Boost() {}
+    Boost(int scene);
+    glm::vec3 position;
+    float speed_x,speed_y,acc_y;
+    Polygon part;
+    void draw(glm::mat4 VP);
+    void set_position(float x, float y);
+    void tick();
     double speed;
 private:
     VAO *object1;
