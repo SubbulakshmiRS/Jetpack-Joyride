@@ -21,10 +21,8 @@ GLFWwindow *window;
 **************************/
 
 int safe,attract;
-int points;
 int stop;
 float max_height,max_width,radius;
-float distance_covered ;
 float attract_x,attract_y,attract_r;
 
 int level ;
@@ -37,7 +35,8 @@ Semi sm;
 Wall w ;
 Boomerang bm;
 Beam b;
-Boost beads;
+int beads_status[5];
+Boost beads[5];
 Player player;
 Magnet mag;
 
@@ -109,7 +108,11 @@ void draw() {
     if(level>=2)
     {
         b.draw(VP);
-        beads.draw(VP);
+        for(int i=0;i<5;i++)
+        if(beads_status[i] != -1)
+            {
+                beads[i].draw(VP);
+            }
     }
     if(level>=1)
     {
@@ -120,8 +123,6 @@ void draw() {
             }
         s.draw(VP);
     }
-
-
 
     player.draw(VP);
 }
@@ -162,7 +163,13 @@ void tick_input(GLFWwindow *window) {
         }        
         if(level >= 2)
         {
-            ;
+            for(int i=0;i<5;i++)
+                if(beads_status[i] != -1)
+                {
+                    beads[i].position.x += 0.1; // move the back ground
+                    if(beads[i].position.x <= -5.0f || beads[i].position.x >= 5.0f) 
+                        beads_status[i] = -1;
+                }
         }        
         if(level >= 1)
         {
@@ -171,7 +178,7 @@ void tick_input(GLFWwindow *window) {
                     c[i].position.x += 0.1; // move the back ground
         }
 
-        distance_covered -= 0.1f;
+        player.distance_covered -= 0.1f;
 
     }
     else if (right) {
@@ -197,7 +204,13 @@ void tick_input(GLFWwindow *window) {
         }       
         if(level >= 2)
         {
-            // BEAM
+            for(int i=0;i<5;i++)
+                if(beads_status[i] != -1)
+                {
+                    beads[i].position.x -= 0.1; // move the back ground
+                    if(beads[i].position.x <= -5.0f || beads[i].position.x >= 5.0f) 
+                        beads_status[i] = -1;
+                }
         }
         
         if(level >= 1)
@@ -210,7 +223,7 @@ void tick_input(GLFWwindow *window) {
                         coin_status[i] = -1;
                 }
         }
-        distance_covered += 0.1f;
+        player.distance_covered += 0.1f;
     }
     else if (up){
         if(safe && level>= 3)
@@ -281,7 +294,13 @@ void tick_elements() {
     }
     if(level >= 2)
     {
-        beads.tick();
+        for(int i=0;i<5;i++)
+        {
+            beads[i].tick();
+            if(beads[i].position.y <= -5.0f || beads[i].position.y >= 5.0f) 
+                beads_status[i] = -1;
+        }
+            
     }
     if(level >= 1)
     {
@@ -297,12 +316,21 @@ void tick_elements() {
         stat =0;
         bm.position.x -= attract_x;
         for(int i=0;i<5;i++)
+        {
             if(coin_status[i] != -1)
             {
                 c[i].position.x -= attract_x; // move the back ground
                 if(c[i].position.x <= -5.0f) 
                     coin_status[i] = -1;
-            }        
+            } 
+            if(beads_status[i] != -1)
+            {
+                beads[i].position.x -= attract_x; // move the back ground
+                if(beads[i].position.x <= -5.0f || beads[i].position.x >= 5.0f) 
+                    beads_status[i] = -1;
+            }
+        }
+       
     }
 
     if(safe == 0)
@@ -326,6 +354,27 @@ void tick_elements() {
             light.height = 0.1f;
             if(detect_collision(p,light))
                 cout<<"Hit by beam\n";
+            for(int i=0;i<5;i++)
+                if(beads_status[i] != -1)
+                {
+                    bounding_box_t b;
+                    b.x = beads[i].position.x;
+                    b.y = beads[i].position.y;
+                    b.width = 0.2f;
+                    b.height = 0.2f; 
+                    if (detect_collision(b,p))
+                    {
+                        if(beads[i].color == 2)
+                            player.lives += 1;
+                        else if(beads[i].color == 1)
+                            player.points += 20;
+                        else
+                            player.points += 10;
+                        
+                        cout<<"POINTS : "<<player.points<<"\n";
+                        beads_status[i] = -1;
+                    }       
+                }
         }
         if(level >= 1)
         {
@@ -343,7 +392,9 @@ void tick_elements() {
             {
                 if(doIntersect(p_line[i],p_line[3-i],s_line[0],s_line[1]))
                 {
-                    cout<<"Hit streak\n";
+                    //cout<<"Hit streak\n";
+                    player.points -= 2;
+                    cout<<"POINTS : "<<player.points<<"\n";
                     break;
                 }
             }
@@ -357,8 +408,8 @@ void tick_elements() {
                     b.height = 0.2f; 
                     if (detect_collision(b,p))
                     {
-                        points += 10; // getting the coins 
-                        cout<<"POINTS : "<<points<<"\n";
+                        player.points += 10; // getting the coins 
+                        cout<<"POINTS : "<<player.points<<"\n";
                         coin_status[i] = -1;
                     }       
                 }
@@ -381,7 +432,12 @@ void initGL(GLFWwindow *window, int width, int height) {
     }
     if(level >= 2)
     {
-        beads = Boost(1);
+        for(int i=0;i<5;i++)
+            if(beads_status[i] == -1)
+            {
+                beads[i] = Boost(1);
+                beads_status[i] = 1;
+            }
         b = Beam(1);
     }
     if(level >= 1)
@@ -423,14 +479,15 @@ void initGL(GLFWwindow *window, int width, int height) {
 
 int main(int argc, char **argv) {
     //all initialization 
-    level =3;
+    level =2;
     safe =0;attract = 0;
     radius =0;
     stat =0;
     for(int i =0;i<5;i++)
+    {
         coin_status[i] = -1;
-    points = 0;
-    distance_covered = 0;
+        beads_status[i] = -1;
+    }
     max_height = max_width = 4.0f;
     stop = 1;
     srand(time(0));
@@ -448,12 +505,22 @@ int main(int argc, char **argv) {
         if (t60.processTick()) {
         
         for(int i=0;i<5;i++)
-            if(coin_status[i] == -1)
-            {
-                //cout<<"sd\n";
-                c[i] = Coin(1);
-                coin_status[i] = 1;
-            }
+        {
+            if(level >= 1)
+                if(coin_status[i] == -1)
+                {
+                    //cout<<"sd\n";
+                    c[i] = Coin(1);
+                    coin_status[i] = 1;
+                }
+            if(level>=2)
+                if(beads_status[i] == -1)
+                {
+                    beads[i] = Boost(1);
+                    beads_status[i] = 1;
+
+                }
+        }
 
             // 60 fps
             // OpenGL Draw commands

@@ -4,7 +4,8 @@
 
 Player::Player(int scene) {
     this->distance_covered = 0;
-    this->up = 0;
+    this->up = this->points = 0;
+    this->lives = 5;
     float x =0,y=0;
     this->position = glm::vec3(x, y, 0);
     this->part1 = Ball(this->position.x,this->position.y,COLOR_RED,0.25f,0);

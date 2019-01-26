@@ -52,12 +52,26 @@ int Magnet::move(float x , float y){
 
 Boost::Boost(int scene) {
     color_t choices[]={COLOR_BLUE,COLOR_BRIGHT_GREEN,COLOR_PINK};
-    float x=-1.0f,y=1.0f;
+    
+    std::vector<std::pair<float, float> > options ;
+    options.push_back(std::make_pair(-4.0f, 2.0f));
+    options.push_back(std::make_pair(-4.0f,-2.0f));
+    options.push_back(std::make_pair(4.0f,2.0f));
+    options.push_back(std::make_pair(4.0f,-2.0f));
+    std::vector<std::pair<int, int> > directions ;
+    directions.push_back(std::make_pair(1,-1));
+    directions.push_back(std::make_pair(-1,-1));
+    directions.push_back(std::make_pair(-1,-1));
+    directions.push_back(std::make_pair(-1,1));
+
+    int type = rand()%4;
+    float x=options[type].first,y=options[type].second;
     this->position = glm::vec3(x, y, 0);
-    this->speed_x = 0.1f;
-    this->speed_y = 0;
+    this->speed_x = (rand()%3 +0.1f)*(directions[type].first)*(0.1f);
+    this->speed_y = (rand()%3 )*(directions[type].second)*(0.1f);
     this->acc_y = 0.005f;
-    this->part = Polygon(this->position.x,this->position.y,choices[rand()%3],0.1,10,0);
+    this->color = rand()%3;
+    this->part = Polygon(this->position.x,this->position.y,choices[color],0.1,10,0);
 
 }
 
@@ -72,7 +86,7 @@ void Boost::set_position(float x, float y) {
 void Boost::tick(){
 
     this->part.position.x += this->speed_x;
-    this->speed_y += this->acc_y;
-    this->part.position.y -= this->speed_y;
+    this->speed_y -= this->acc_y;
+    this->part.position.y += this->speed_y;
     // check if the item is within the boundaries of the screen ( += 10 all sides)
 }

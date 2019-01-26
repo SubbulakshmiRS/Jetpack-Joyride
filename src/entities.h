@@ -28,13 +28,11 @@ public:
     glm::vec3 position;
     float speed_x,speed_y,acc_y;
     Polygon part;
+    int color;
     void draw(glm::mat4 VP);
     void set_position(float x, float y);
     void tick();
-    double speed;
-private:
-    VAO *object1;
-    VAO *object2;    
+
 };
 
 #endif // ENTITIES_H
