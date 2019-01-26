@@ -8,6 +8,7 @@
 #include "collision.h"
 #include "semi.h"
 #include "entities.h"
+#include "player.h"
 
 using namespace std;
 
@@ -38,7 +39,7 @@ Boomerang bm;
 Beam b;
 Boost beads;
 Ball enemy1 ;
-Ball player;
+Player player;
 Ball ball1;
 Ball ball2;
 Magnet mag;
@@ -59,7 +60,7 @@ float circle_point(float radius,float z,float other_coordinate)
     ans = sqrt(ans);
     ans *= (-1);
     ans +=  other_coordinate;
-    cout<<"ANSWER "<<ans<<" Rad "<<radius<<" "<<z<<" "<<other_coordinate<<"\n";
+    //cout<<"ANSWER "<<ans<<" Rad "<<radius<<" "<<z<<" "<<other_coordinate<<"\n";
     return ans;
 }
 
@@ -134,6 +135,11 @@ void tick_input(GLFWwindow *window) {
     int zoomin = glfwGetKey(window, GLFW_KEY_Z);
     int zoomout = glfwGetKey(window, GLFW_KEY_X);
 
+    if(up)
+        player.up =1;
+    else
+        player.up = 0;
+    
     if (left) {
         float ans;
         if(safe == 1)
@@ -143,7 +149,7 @@ void tick_input(GLFWwindow *window) {
         if(safe == 1)
         {
             player.position.y = ans;
-            cout<<"safe in left\n";
+            //cout<<"safe in left\n";
         }
         mag.position.x += 0.1f;
         sm.position.x += 0.1f;
@@ -168,7 +174,7 @@ void tick_input(GLFWwindow *window) {
         {
             ans = circle_point(radius,player.position.x+0.1f-sm.position.x,sm.position.y);
             player.position.y = ans;
-            cout<<"safe in right\n";
+            //cout<<"safe in right\n";
         }
         sm.position.x -= 0.1f;
         mag.position.x -= 0.1f;
@@ -216,8 +222,9 @@ void tick_elements() {
     //cout<<"tick";
 
     //b.tick();
+    player.tick();
     beads.tick();
-    cout<<beads.position.x<<" ";
+    //cout<<beads.position.x<<" ";
     float square = pow((player.position.x-sm.position.x),2.0) + pow((player.position.y-sm.position.y),2.0) ;
     radius = sqrt(square);
 
@@ -299,7 +306,7 @@ void tick_elements() {
     {
         if(doIntersect(p_line[i],p_line[3-i],s_line[0],s_line[1]))
         {
-            cout<<"HIT BY BEAM\n";
+            //cout<<"HIT BY BEAM\n";
             break;
         }
     }
@@ -348,7 +355,7 @@ void initGL(GLFWwindow *window, int width, int height) {
 
     ball1       = Ball(1, 1, COLOR_RED,0.5f,0);
     ball2       = Ball(3, 3, COLOR_GREEN,1.0f,0);
-    player = Ball(0, 0, COLOR_RED,0.25f,0);
+    player = Player(1);
     enemy1 = Ball(1, 2, COLOR_BLACK,0.5f,0);
     p = Platform(1);
     w = Wall(1);

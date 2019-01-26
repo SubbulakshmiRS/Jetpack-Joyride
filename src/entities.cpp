@@ -57,7 +57,7 @@ Boost::Boost(int scene) {
     this->speed_x = 0.1f;
     this->speed_y = 0;
     this->acc_y = 0.005f;
-    this->part = Polygon(this->position.x,this->position.y,choices[rand()%3],0.1,10);
+    this->part = Polygon(this->position.x,this->position.y,choices[rand()%3],0.1,10,0);
 
 }
 

@@ -7,7 +7,7 @@
 class Polygon {
 public:
     Polygon() {}
-    Polygon(float x, float y, color_t color,float size,int n);
+    Polygon(float x, float y, color_t color,float size,int n,float rotation);
     glm::vec3 position;
     float rotation;
     float size;
